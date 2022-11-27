@@ -17,7 +17,7 @@ export default {
   },
 
   publicRuntimeConfig: {
-    API_URL: process.env.API_URL
+    API_URL: process.env.API_URL || 'https://inssoftapp.azurewebsites.net'
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
