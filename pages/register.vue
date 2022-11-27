@@ -13,7 +13,6 @@
   
   <style scoped>
   .register{
-    margin-top: 50px;
     margin-left: auto;
     margin-right: auto;
   }
