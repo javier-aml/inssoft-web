@@ -236,5 +236,7 @@
     display: block;
     max-width: 700px;
     min-width: 200px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 </style>
