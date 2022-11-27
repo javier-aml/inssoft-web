@@ -1,6 +1,6 @@
 <template>
     <div class="register-form">
-        <b-form @submit.stop.prevent>
+        <b-form @submit.prevent="validateEmailExist">
             <b-form-group
                 id="register-name"
                 label="Nombre:"
@@ -78,7 +78,7 @@
                     oninput="this.setCustomValidity('')"
                 ></b-form-input>
                 <b-form-invalid-feedback :state="validateEmail">
-                    El formato del correo electrónico es incorrecto.
+                    {{emailExists ? 'El correo ingresado ya existe.' : 'El formato del correo electrónico es incorrecto.'}}
                 </b-form-invalid-feedback>
             </b-form-group>
             <b-form-group
@@ -138,7 +138,7 @@
                     oninvalid="this.setCustomValidity('Ingresa la confirmación de la contraseña')"
                     oninput="this.setCustomValidity('')"
                 ></b-form-input>
-                <b-form-invalid-feedback :state="validateEmail">
+                <b-form-invalid-feedback :state="validatePasswordConfirm">
                     Las contraseñas no coinciden.
                 </b-form-invalid-feedback>
             </b-form-group>
@@ -163,7 +163,8 @@
                 phoneNumber: null,
                 email: null,
                 password: null,
-                passwordConfirm: null
+                passwordConfirm: null,
+                emailExists: false
             }
         },
         methods: {
@@ -181,14 +182,21 @@
                 if (!this.password) return;
                 const loweCaseRegex = /[a-z]+/;
                 const upperCaseRegex = /[A-Z]+/;
-                console.log(this.password.match(loweCaseRegex));
-                console.log(this.password.match(upperCaseRegex));
                 return this.password.match(loweCaseRegex) && this.password.match(upperCaseRegex) ? true : false;
             },
             validatePasswordSpecialCharacters(){
                 if (!this.password) return;
                 const alphanumericRegex = /^[0-9a-zA-Z]+$/;
                 return this.password.match(alphanumericRegex) ? true : false;
+            }
+            ,async validateEmailExist(){
+                try {
+                    let response = await fetch(`https://inssoftapp.azurewebsites.net/users?email=${this.email}`);
+                    response = await response.json();
+                    if (response.length > 0) this.emailExists = true;
+                } catch(err) {
+                    console.log(err);
+                }
             }
         },
         computed: {
@@ -211,6 +219,7 @@
             validateEmail() {
                 const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                 if (!this.email) return null;
+                else if(this.emailExists) return false;
                 else return this.email.match(emailRegex) ? true : false;
             },
             validatePassword() {
