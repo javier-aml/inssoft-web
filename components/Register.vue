@@ -4,7 +4,7 @@
             <b-form-group
                 id="register-name"
                 label="Nombre:" 
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-input
                     type="text"
@@ -19,7 +19,7 @@
             <b-form-group
                 id="register-last-name"
                 label="Apellidos:"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-input
                     type="text"
@@ -34,7 +34,7 @@
             <b-form-group
                 id="register-gender"
                 label="Género:"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-radio-group
                     id="register-gender-group"
@@ -56,7 +56,7 @@
             <b-form-group
                 id="register-phone-number"
                 label="Número de teléfono:"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-input
                     type="number"
@@ -71,7 +71,7 @@
             <b-form-group
                 id="register-email"
                 label="Correo electrónico:"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-input
                     type="email"
@@ -89,7 +89,7 @@
             <b-form-group
                 id="register-password"
                 label="Contraseña:"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-input
                     type="password"
@@ -104,37 +104,31 @@
                     id="password-help-block"
                     v-show="validatePassword === null"
                 >
-                    <p>La contraseña debe cumplir con los siguientes requisitos:</p>
+                    <p>{{notes.passwordValidation[1]}}</p>
                     <ul>
-                        <li>Debe tener una longitud de 8 a 20 caractéres.</li>
-                        <li>Debe tener números y letras.</li>
-                        <li>Debe tener al menos una letra en minúscula y una en mayúscula.</li>
-                        <li>No debe tener espacios o caractéres especiales.</li>
+                        <li v-for="i in 4" :key="i">{{notes.passwordValidation[i + 1]}}</li>
                     </ul>
                 </b-form-text>
                 <b-form-valid-feedback :state="validatePassword">
-                    <p>La contraseña debe cumplir con los siguientes requisitos:</p>
+                    <p>{{notes.passwordValidation[1]}}</p>
                     <ul>
-                        <li>Debe tener una longitud de 8 a 20 caractéres.</li>
-                        <li>Debe tener números y letras.</li>
-                        <li>Debe tener al menos una letra en minúscula y una en mayúscula.</li>
-                        <li>No debe tener espacios o caractéres especiales.</li>
+                        <li v-for="i in 4" :key="i">{{notes.passwordValidation[i + 1]}}</li>
                     </ul>
                 </b-form-valid-feedback>
                 <b-form-invalid-feedback :state="validatePassword">
-                    <p>La contraseña debe cumplir con los siguientes requisitos:</p>
+                    <p>{{notes.passwordValidation[1]}}</p>
                     <ul>
-                        <li :style="validatePasswordLength() ? 'color: green;' : 'color: red;'">Debe tener una longitud de 8 a 20 caractéres.</li>
-                        <li :style="validatePasswordAlphanumeric() ? 'color: green;' : 'color: red;'">Debe tener numeros y letras.</li>
-                        <li :style="validatePasswordMixedCase() ? 'color: green;' : 'color: red;'">Debe tener al menos una letra en minúscula y una en mayúscula.</li>
-                        <li :style="validatePasswordSpecialCharacters() ? 'color: green;' : 'color: red;'">No debe tener espacios o caractéres especiales.</li>
+                        <li :style="validatePasswordLength() ? 'color: green;' : 'color: red;'">{{notes.passwordValidation[1]}}</li>
+                        <li :style="validatePasswordAlphanumeric() ? 'color: green;' : 'color: red;'">{{notes.passwordValidation[2]}}</li>
+                        <li :style="validatePasswordMixedCase() ? 'color: green;' : 'color: red;'">{{notes.passwordValidation[3]}}</li>
+                        <li :style="validatePasswordSpecialCharacters() ? 'color: green;' : 'color: red;'">{{notes.passwordValidation[4]}}</li>
                     </ul>
                 </b-form-invalid-feedback>
             </b-form-group>
             <b-form-group
                 id="register-password-confirm"
                 label="Confirmar contraseña:"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
             >
                 <b-form-input
                     type="password"
@@ -153,10 +147,18 @@
                 block
                 type="submit"
                 :variant="userRegistered ? 'outline-success' : 'primary'"
-                :disabled="userRegistered"
+                :disabled="userRegistered || registerRunning"
+                v-show="!registerRunning"
             >
             {{userRegistered ? 'Usuario registrado' : 'Registrarse'}}
             </b-button>
+            <div 
+                style="dispaly: block; text-align: center;"
+                v-show="registerRunning"
+            >
+                <b-spinner variant="primary" label="Spinning"></b-spinner>
+                <span style="margin-left:10px; position: relative; top:-5px">Registrando usuario..</span>
+            </div>
         </b-form>
     </div>
 </template>
@@ -173,7 +175,17 @@
                 password: null,
                 passwordConfirm: null,
                 emailExists: false,
-                userRegistered: false 
+                userRegistered: false ,
+                registerRunning: false,
+                notes: {
+                    passwordValidation: {
+                        1: 'La contraseña debe cumplir con los siguientes requisitos:',
+                        2: 'Debe tener una longitud de 8 a 20 caractéres.',
+                        3:  'Debe tener numeros y letras.',
+                        4: 'Debe tener al menos una letra en minúscula y una en mayúscula.',
+                        5: 'No debe tener espacios o caractéres especiales.'
+                    }
+                }
             }
         },
         methods: {
@@ -208,7 +220,10 @@
                 }
             },
             async registerUser(){
-                if (await this.validateEmailExist()) return;
+                this.registerRunning = true;
+                if (await this.validateEmailExist()) {
+                    this.registerRunning = false;
+                };
                 const userData = {
                     name: this.name,
                     last_names: this.lastName,
@@ -220,8 +235,10 @@
                 try{
                     await this.$store.dispatch('registerUser', userData);
                     this.userRegistered = true;
+                    this.registerRunning = false;
                 }catch(error){
                     alert('Ocurrió un error en la aplicación');
+                    this.registerRunning = false;
                     return;
                 }
             }
