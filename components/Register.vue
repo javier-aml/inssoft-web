@@ -81,6 +81,7 @@
                     :state="validateEmail"
                     oninvalid="this.setCustomValidity('Ingresa tu correo electrónico')"
                     oninput="this.setCustomValidity('')"
+                    :on-change="emailExists = false"
                 ></b-form-input>
                 <b-form-invalid-feedback :state="validateEmail">
                     {{emailExists ? 'El correo ingresado ya existe.' : 'El formato del correo electrónico es incorrecto.'}}
@@ -221,8 +222,18 @@
             },
             async registerUser(){
                 this.registerRunning = true;
-                if (await this.validateEmailExist()) {
+                try{
+                    await this.validateEmailExist();
+                }catch(err){
                     this.registerRunning = false;
+                    this.userRegistered = false;
+                    this.emailExists = false;
+                    alert('Ocurrió un error en la aplicación');
+                    return;                   
+                }
+                if (this.emailExists) {
+                    this.registerRunning = false;
+                    this.userRegistered = false;
                     return;
                 };
                 const userData = {
@@ -238,8 +249,8 @@
                     this.userRegistered = true;
                     this.registerRunning = false;
                 }catch(error){
-                    alert('Ocurrió un error en la aplicación');
                     this.registerRunning = false;
+                    alert('Ocurrió un error en la aplicación');
                     return;
                 }
             }
