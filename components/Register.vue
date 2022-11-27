@@ -1,9 +1,10 @@
 <template>
     <div class="register-form">
-        <b-form @submit.prevent="validateEmailExist">
+        <b-form @submit.prevent="registerUser">
             <b-form-group
                 id="register-name"
-                label="Nombre:"
+                label="Nombre:" 
+                :disabled="userRegistered"
             >
                 <b-form-input
                     type="text"
@@ -18,6 +19,7 @@
             <b-form-group
                 id="register-last-name"
                 label="Apellidos:"
+                :disabled="userRegistered"
             >
                 <b-form-input
                     type="text"
@@ -32,6 +34,7 @@
             <b-form-group
                 id="register-gender"
                 label="Género:"
+                :disabled="userRegistered"
             >
                 <b-form-radio-group
                     id="register-gender-group"
@@ -53,6 +56,7 @@
             <b-form-group
                 id="register-phone-number"
                 label="Número de teléfono:"
+                :disabled="userRegistered"
             >
                 <b-form-input
                     type="number"
@@ -67,6 +71,7 @@
             <b-form-group
                 id="register-email"
                 label="Correo electrónico:"
+                :disabled="userRegistered"
             >
                 <b-form-input
                     type="email"
@@ -84,6 +89,7 @@
             <b-form-group
                 id="register-password"
                 label="Contraseña:"
+                :disabled="userRegistered"
             >
                 <b-form-input
                     type="password"
@@ -128,6 +134,7 @@
             <b-form-group
                 id="register-password-confirm"
                 label="Confirmar contraseña:"
+                :disabled="userRegistered"
             >
                 <b-form-input
                     type="password"
@@ -145,9 +152,10 @@
             <b-button 
                 block
                 type="submit"
-                variant="primary"
+                :variant="userRegistered ? 'outline-success' : 'primary'"
+                :disabled="userRegistered"
             >
-            Registrarse
+            {{userRegistered ? 'Usuario registrado' : 'Registrarse'}}
             </b-button>
         </b-form>
     </div>
@@ -164,7 +172,8 @@
                 email: null,
                 password: null,
                 passwordConfirm: null,
-                emailExists: false
+                emailExists: false,
+                userRegistered: false 
             }
         },
         methods: {
@@ -191,11 +200,29 @@
             }
             ,async validateEmailExist(){
                 try {
-                    let response = await fetch(`https://inssoftapp.azurewebsites.net/users?email=${this.email}`);
+                    let response = await fetch(`${this.$config.API_URL}/users?email=${this.email}`);
                     response = await response.json();
                     if (response.length > 0) this.emailExists = true;
                 } catch(err) {
-                    console.log(err);
+                    alert('Ocurrió un error en la aplicación');
+                }
+            },
+            async registerUser(){
+                if (await this.validateEmailExist()) return;
+                const userData = {
+                    name: this.name,
+                    last_names: this.lastName,
+                    gender_id: this.gender,
+                    telephone_number: this.phoneNumber,
+                    email: this.email,
+                    password: this.password
+                };
+                try{
+                    await this.$store.dispatch('registerUser', userData);
+                    this.userRegistered = true;
+                }catch(error){
+                    alert('Ocurrió un error en la aplicación');
+                    return;
                 }
             }
         },
@@ -247,5 +274,6 @@
     min-width: 200px;
     padding-left: 10px;
     padding-right: 10px;
+    padding-top: 10px;
 }
 </style>

@@ -13,10 +13,11 @@ export default {
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-    ],
-    env: {
-      apiUrl: process.env.API_URL
-    }
+    ]
+  },
+
+  publicRuntimeConfig: {
+    API_URL: process.env.API_URL
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
@@ -42,5 +43,5 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-  },
+  }
 }
