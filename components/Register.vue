@@ -223,6 +223,7 @@
                 this.registerRunning = true;
                 if (await this.validateEmailExist()) {
                     this.registerRunning = false;
+                    return;
                 };
                 const userData = {
                     name: this.name,
