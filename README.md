@@ -7,3 +7,4 @@ Téconogías utilizadas
 • NUXT JS
 • BOOTSTRAP VUE
 • VUE X
+• AZURE STATIC WEB APP
