@@ -81,7 +81,6 @@
                     :state="validateEmail"
                     oninvalid="this.setCustomValidity('Ingresa tu correo electrónico')"
                     oninput="this.setCustomValidity('')"
-                    :on-change="emailExists = false"
                 ></b-form-input>
                 <b-form-invalid-feedback :state="validateEmail">
                     {{emailExists ? 'El correo ingresado ya existe.' : 'El formato del correo electrónico es incorrecto.'}}
@@ -216,6 +215,7 @@
                     let response = await fetch(`${this.$config.API_URL}/users?email=${this.email}`);
                     response = await response.json();
                     if (response.length > 0) this.emailExists = true;
+                    else this.emailExists = false;
                 } catch(err) {
                     alert('Ocurrió un error en la aplicación');
                 }
@@ -224,34 +224,35 @@
                 this.registerRunning = true;
                 try{
                     await this.validateEmailExist();
+                    if (this.emailExists) {
+                        console.log('Ya existe el correo');
+                        this.registerRunning = false;
+                        this.userRegistered = false;
+                        return;
+                    };
+                    const userData = {
+                        name: this.name,
+                        last_names: this.lastName,
+                        gender_id: this.gender,
+                        telephone_number: this.phoneNumber,
+                        email: this.email,
+                        password: this.password
+                    };
+                    try{
+                        await this.$store.dispatch('registerUser', userData);
+                        this.userRegistered = true;
+                        this.registerRunning = false;
+                    }catch(error){
+                        this.registerRunning = false;
+                        alert('Ocurrió un error en la aplicación');
+                        return;
+                    }
                 }catch(err){
                     this.registerRunning = false;
                     this.userRegistered = false;
                     this.emailExists = false;
                     alert('Ocurrió un error en la aplicación');
                     return;                   
-                }
-                if (this.emailExists) {
-                    this.registerRunning = false;
-                    this.userRegistered = false;
-                    return;
-                };
-                const userData = {
-                    name: this.name,
-                    last_names: this.lastName,
-                    gender_id: this.gender,
-                    telephone_number: this.phoneNumber,
-                    email: this.email,
-                    password: this.password
-                };
-                try{
-                    await this.$store.dispatch('registerUser', userData);
-                    this.userRegistered = true;
-                    this.registerRunning = false;
-                }catch(error){
-                    this.registerRunning = false;
-                    alert('Ocurrió un error en la aplicación');
-                    return;
                 }
             }
         },
@@ -291,6 +292,11 @@
             validatePasswordConfirm() {
                 if (!this.passwordConfirm) return null
                 return this.password === this.passwordConfirm ? true : false;
+            }
+        },
+        watch: {
+            email(oldVal, newVal) {
+                if(oldVal !== newVal && this.emailExists) this.emailExists = false;
             }
         }
     }
